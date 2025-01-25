@@ -1,30 +1,14 @@
-[![Discord](https://semdevelopment.com/img/discord.png)](https://semdevelopment.com/discord)
+👮 # SEM INTERACTION MENU OX_LIB MENU 👮
 
-# SEM_InteractionMenu
-*Multi Purpose FiveM Interaction Menu*
+This resource is __**SEM_Interaction Menu**__ by: https://github.com/Sc0ttM **(I AM NOT THE ORIGINAL CREATOR)**
 
-This resource is a menu with actions for LEO, Fire and Civ including Vehicle Controls and Emotes!
+This resource is built to give SEM Interaction a better feel and look. I have added Ox Skill Check to escape cuffs when you are in handcuffs. I have also updated all menu items (that are necessary) to use ox_lib when you click them. This is an open source resource and is free to be altered in anyway you would like. 
 
-Each section has features that would be used by each of the professions, for example the LEO Menu has Cuff, Drag, Seat, etc.
-Some menu features also have commands out of ease during RP.
+⭐ Starring my repos are always helpful and meaningful to me so thank you to anybody who stars my repo.
 
-SEM_InteractionMenu was created using NativeUI [LUA]
+💻 **Installation**
+This is a drag and drop resource. Open your server.cfg file, ensure/start SEM_InteractionMenu, then drag and drop the resource and it should set itself up. Please make sure ox_lib is installed and started before this resource on your server. If you fail to do this step the menu **WILL** break.
 
+![image](https://github.com/user-attachments/assets/41868645-855b-4ebc-88b2-2df8c6cf48a5)
+![image](https://github.com/user-attachments/assets/48948eec-e20d-4a4d-be64-f26bbdc8f08c)
 
-### Information:
-Current Version: **v1.7.1**
-
-Changes: **• Fixes menu item skipping**
-
-**THIS UPDATE *ONLY* AFFECTS THE DEPENDENCY NATIVEUI - YOU CAN JUST UPDATE THAT FILE *(NO OTHER FILES WERE CHANGED!)***
-
-
-### Links:
-
-Support/Discord: [Click Here](https://semdevelopment.com/discord)
-
-Information: [Click Here](https://semdevelopment.com/releases/interactionmenu)
-
-Instruction/Docs: [Click here](https://semdevelopment.com/releases/interactionmenu/docs)
-
-*For full changes checkout [here](https://semdevelopment.com/releases/interactionmenu/docs/changelog)*
