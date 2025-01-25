@@ -6,6 +6,10 @@ This resource is built to give SEM Interaction a better feel and look. I have ad
 
 ⭐ Starring my repos are always helpful and meaningful to me so thank you to anybody who stars my repo.
 
+**TO BREAK OUT OF CUFFS THE DEFAULT KEYBIND IS "G"**
+
+
+
 💻 **Installation**
 This is a drag and drop resource. Open your server.cfg file, ensure/start SEM_InteractionMenu, then drag and drop the resource and it should set itself up. Please make sure ox_lib is installed and started before this resource on your server. If you fail to do this step the menu **WILL** break.
 
