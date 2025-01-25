@@ -1,4 +1,4 @@
-👮 # SEM INTERACTION MENU OX_LIB MENU 👮
+# 👮 SEM INTERACTION MENU OX_LIB MENU 👮
 
 This resource is __**SEM_Interaction Menu**__ by: https://github.com/Sc0ttM **(I AM NOT THE ORIGINAL CREATOR)**
 
