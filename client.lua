@@ -19,23 +19,48 @@ AddEventHandler('SEM_InteractionMenu:Cuff', function()
     local Ped = PlayerPedId()
     if (DoesEntityExist(Ped)) then
         Citizen.CreateThread(function()
-            RequestAnimDict('mp_arresting')
-            while not HasAnimDictLoaded('mp_arresting') do
-                Citizen.Wait(0)
-            end
-
             if isCuffed then
+                -- Uncuffing
+                local animation = { dict = "mp_arresting", name = "b_uncuff" }
+                RequestAnimDict(animation.dict)
+                while not HasAnimDictLoaded(animation.dict) do
+                    Citizen.Wait(0)
+                end
+                TaskPlayAnim(Ped, animation.dict, animation.name, 8.0, -8, -1, 0, 0, 0, 0, 0)
+                
+                -- Wait for the animation to finish
+                Citizen.Wait(3000)
+                
                 isCuffed = false
-                Citizen.Wait(500)
                 SetEnableHandcuffs(Ped, false)
                 ClearPedTasksImmediately(Ped)
             else
+                -- Cuffing
                 isCuffed = true
                 SetEnableHandcuffs(Ped, true)
-                TaskPlayAnim(Ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
+                
+                -- Cuffing animation
+                local animation = { dict = "mp_arrest_paired", name = "crook_p2_back_right" }
+                RequestAnimDict(animation.dict)
+                while not HasAnimDictLoaded(animation.dict) do
+                    Citizen.Wait(0)
+                end
+                TaskPlayAnim(Ped, animation.dict, animation.name, 8.0, -8, 3750, 2, 0, 0, 0, 0)
+                
+                -- Ensure the cuffed animation persists
+                Citizen.SetTimeout(3800, function()
+                    if isCuffed then
+                        local cuffedAnim = { dict = "mp_arresting", name = "idle" }
+                        RequestAnimDict(cuffedAnim.dict)
+                        while not HasAnimDictLoaded(cuffedAnim.dict) do
+                            Citizen.Wait(0)
+                        end
+                        TaskPlayAnim(Ped, cuffedAnim.dict, cuffedAnim.name, 8.0, -8, -1, 49, 0, 0, 0, 0)
+                    end
+                end)
                 
                 -- Attempt uncuffing
-                Citizen.Wait(2000) -- Wait 2 seconds before starting
+                Citizen.Wait(4000) -- Wait 4 seconds before starting
                 TriggerEvent('SEM_InteractionMenu:AttemptUncuff')
             end
         end)
@@ -44,7 +69,7 @@ end)
 
 -- Uncuff attempt event
 RegisterNetEvent('SEM_InteractionMenu:AttemptUncuff')
-AddEventHandler('SEM_InteractionMenu:Drag', function(ID)
+AddEventHandler('SEM_InteractionMenu:AttemptUncuff', function()
     if isCuffed then
         if exports['ox_lib'] and exports['ox_lib'].skillCheck then
             local success = exports['ox_lib']:skillCheck({'easy', 'easy', {areaSize = 60, speedMultiplier = 2}, 'easy'}, {'w', 'a', 's', 'd'})
@@ -54,14 +79,6 @@ AddEventHandler('SEM_InteractionMenu:Drag', function(ID)
                 SetEnableHandcuffs(Ped, false)
                 ClearPedTasksImmediately(Ped)
                 Notify('~g~You successfully uncuffed yourself!')
-                
-                -- Undrag the player if they were being dragged
-                if Drag then
-                    Drag = false
-                    OfficerDrag = -1
-                    DetachEntity(Ped, true, false)
-                    RegisterNetEvent('SEM_InteractionMenu:Drag')
-                end
             else
                 Notify('~r~Failed to uncuff yourself!')
             end
@@ -71,31 +88,79 @@ AddEventHandler('SEM_InteractionMenu:Drag', function(ID)
     end
 end)
 
---Cuff Animation & Restructions
+-- Arresting Animation
+RegisterNetEvent('SEM_InteractionMenu:OfficerCuffAnim')
+AddEventHandler('SEM_InteractionMenu:OfficerCuffAnim', function()
+    local playerPed = PlayerPedId()
+    local animation = {dict = 'mp_arrest_paired', name = 'cop_p2_back_right'}
+    
+    RequestAnimDict(animation.dict)
+    while not HasAnimDictLoaded(animation.dict) do
+        Wait(0)
+    end
+    TaskPlayAnim(playerPed, animation.dict, animation.name, 8.0, -8, 3750, 48, 0, 0, 0, 0)
+end)
+
+--Cuff Animation & Restrictions
 Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(1)
+    while true do
+        Citizen.Wait(1)
+
+        local ped = PlayerPedId()
 
         if isCuffed then
-            if not IsEntityPlayingAnim(GetPlayerPed(PlayerId()), 'mp_arresting', 'idle', 3) then
-                TaskPlayAnim(GetPlayerPed(PlayerId()), 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
-            end
+            if IsEntityDead(ped) then
+                isCuffed = false
+                SetEnableHandcuffs(ped, false)
+                ClearPedTasksImmediately(ped)
+            else
+                if not IsEntityPlayingAnim(ped, 'mp_arresting', 'idle', 3) then
+                    RequestAnimDict("mp_arresting")
+                    while not HasAnimDictLoaded("mp_arresting") do
+                        Wait(100)
+                    end
+                    TaskPlayAnim(ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
+                end
 
-            SetCurrentPedWeapon(PlayerPedId(), 'weapon_unarmed', true)
-            
-            if not Config.VehEnterCuffed then
-                DisableControlAction(1, 23, true) --F | Enter Vehicle
-                DisableControlAction(1, 75, true) --F | Exit Vehicle
+                SetEnableHandcuffs(ped, true)
+                SetPedCanPlayGestureAnims(ped, false)
+                FreezeEntityPosition(ped, false)
+
+                SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true)
+                
+                if not Config.VehEnterCuffed then
+                    DisableControlAction(1, 23, true) --F | Enter Vehicle
+                    DisableControlAction(1, 75, true) --F | Exit Vehicle
+                end
+                DisableControlAction(1, 140, true) --R
+                DisableControlAction(1, 141, true) --Q
+                DisableControlAction(1, 142, true) --LMB
+                SetPedPathCanUseLadders(ped, false)
+                
+                DisableControlAction(0, 21, true) -- disable sprint
+                DisableControlAction(0, 24, true) -- disable attack
+                DisableControlAction(0, 25, true) -- disable aim
+                DisableControlAction(0, 47, true) -- disable weapon
+                DisableControlAction(0, 58, true) -- disable weapon
+                DisableControlAction(0, 263, true) -- disable melee
+                DisableControlAction(0, 264, true) -- disable melee
+                DisableControlAction(0, 257, true) -- disable melee
+                DisableControlAction(0, 140, true) -- disable melee
+                DisableControlAction(0, 141, true) -- disable melee
+                DisableControlAction(0, 142, true) -- disable melee
+                DisableControlAction(0, 143, true) -- disable melee
+                
+                if IsPedInAnyVehicle(ped, false) then
+                    DisableControlAction(0, 59, true)
+                end
             end
-			DisableControlAction(1, 140, true) --R
-			DisableControlAction(1, 141, true) --Q
-			DisableControlAction(1, 142, true) --LMB
-			SetPedPathCanUseLadders(GetPlayerPed(PlayerId()), false)
-			if IsPedInAnyVehicle(GetPlayerPed(PlayerId()), false) then
-				DisableControlAction(0, 59, true) --Vehicle Driving
-			end
-		end
-	end
+        else
+            SetEnableHandcuffs(ped, false)
+            SetPedCanPlayGestureAnims(ped, true)
+            SetPedMoveRateOverride(ped, 1.0)
+            SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
+        end
+    end
 end)
 
 
@@ -121,10 +186,18 @@ Citizen.CreateThread(function()
         if Drag then
             local Ped = GetPlayerPed(GetPlayerFromServerId(OfficerDrag))
             local Ped2 = PlayerPedId()
-            AttachEntityToEntity(Ped2, Ped, 4103, 0.35, 0.38, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
-            DisableControlAction(1, 140, true) --R
-			DisableControlAction(1, 141, true) --Q
-			DisableControlAction(1, 142, true) --LMB
+            
+            if not isCuffed then
+                Drag = false
+                OfficerDrag = -1
+                DetachEntity(Ped2, true, false)
+                Notify('~g~You have been released from being dragged.')
+            else
+                AttachEntityToEntity(Ped2, Ped, 4103, 0.35, 0.38, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
+                DisableControlAction(1, 140, true) --R
+                DisableControlAction(1, 141, true) --Q
+                DisableControlAction(1, 142, true) --LMB
+            end
         end
     end
 end)

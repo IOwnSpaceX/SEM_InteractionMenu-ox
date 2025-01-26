@@ -116,6 +116,7 @@ function Menu()
                     local player = GetClosestPlayer()
                     if player ~= false then
                         TriggerServerEvent('SEM_InteractionMenu:CuffNear', player)
+                        TriggerEvent('SEM_InteractionMenu:OfficerCuffAnim')
                     end
                 end
                 Drag.Activated = function(ParentMenu, SelectedItem)
