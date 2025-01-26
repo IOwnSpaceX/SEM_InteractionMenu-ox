@@ -10,6 +10,8 @@ This resource is built to give SEM Interaction a better feel and look. I have ad
 
 **ADDED ANIMATIONS TO THE CUFFING MORE COMING SOON! - DRAG NO LONGER WORKS UNLESS YOU ARE DRAGGING SOMEONE WHO IS CUFFED!**
 
+🍀 **CUFFS COMEOFF AFTER YOU DIE IF YOU HAVE THEM ON!**
+
 
 
 💻 **Installation**
