@@ -6,7 +6,9 @@ This resource is built to give SEM Interaction a better feel and look. I have ad
 
 ⭐ Starring my repos are always helpful and meaningful to me so thank you to anybody who stars my repo.
 
-**TO BREAK OUT OF CUFFS THE DEFAULT KEYBIND IS "G"**
+**THE DEFAULT WAIT BEFORE THE OX_LIB SKILLSET SHOWS UP IS 4 SECONDS**
+
+**ADDED ANIMATIONS TO THE CUFFING MORE COMING SOON! - DRAG NO LONGER WORKS UNLESS YOU ARE DRAGGING SOMEONE WHO IS CUFFED!**
 
 
 
