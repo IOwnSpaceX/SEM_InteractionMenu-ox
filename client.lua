@@ -12,9 +12,6 @@
 ──────────────────────────────────────────────────────────────
 ]]
 
-local lastUncuffAttempt = 0
-local uncuffCooldown = 45000
-
 --Cuffing Event
 local isCuffed = false
 RegisterNetEvent('SEM_InteractionMenu:Cuff')
@@ -37,15 +34,9 @@ AddEventHandler('SEM_InteractionMenu:Cuff', function()
                 SetEnableHandcuffs(Ped, true)
                 TaskPlayAnim(Ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
                 
-                -- Start the uncuff attempt listener
-                Citizen.CreateThread(function()
-                    while isCuffed do
-                        Citizen.Wait(0)
-                        if IsControlJustPressed(0, 47) then -- G key
-                            TriggerEvent('SEM_InteractionMenu:AttemptUncuff')
-                        end
-                    end
-                end)
+                -- Attempt uncuffing
+                Citizen.Wait(2000) -- Wait 2 seconds before starting
+                TriggerEvent('SEM_InteractionMenu:AttemptUncuff')
             end
         end)
     end
@@ -53,15 +44,8 @@ end)
 
 -- Uncuff attempt event
 RegisterNetEvent('SEM_InteractionMenu:AttemptUncuff')
-AddEventHandler('SEM_InteractionMenu:AttemptUncuff', function()
+AddEventHandler('SEM_InteractionMenu:Drag', function(ID)
     if isCuffed then
-        local currentTime = GetGameTimer()
-        if currentTime - lastUncuffAttempt < uncuffCooldown then
-            local remainingTime = math.ceil((uncuffCooldown - (currentTime - lastUncuffAttempt)) / 1000)
-            Notify('~r~You must wait ' .. remainingTime .. ' seconds before attempting to uncuff again.')
-            return
-        end
-
         if exports['ox_lib'] and exports['ox_lib'].skillCheck then
             local success = exports['ox_lib']:skillCheck({'easy', 'easy', {areaSize = 60, speedMultiplier = 2}, 'easy'}, {'w', 'a', 's', 'd'})
             if success then
@@ -76,11 +60,10 @@ AddEventHandler('SEM_InteractionMenu:AttemptUncuff', function()
                     Drag = false
                     OfficerDrag = -1
                     DetachEntity(Ped, true, false)
-                    TriggerServerEvent('SEM_InteractionMenu:UndragPlayer')
+                    RegisterNetEvent('SEM_InteractionMenu:Drag')
                 end
             else
-                lastUncuffAttempt = currentTime
-                Notify('~r~Failed to uncuff yourself! You must wait 45 seconds before trying again.')
+                Notify('~r~Failed to uncuff yourself!')
             end
         else
             Notify('~r~Unable to attempt uncuffing. Required resource not available.')
