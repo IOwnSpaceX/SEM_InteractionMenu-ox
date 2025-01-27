@@ -231,7 +231,7 @@ local resourceName =
     ____) | |  |___  |  |  \    /  |  |
    \_____/  |______| |__|   \__/   |__|^7
        	   InteractionMenu
-	  Created By Scott M
+	  Created By Scott M & Modified By: Liam (IOwnSpaceX)
 ]]
 
 Citizen.CreateThread(function()
