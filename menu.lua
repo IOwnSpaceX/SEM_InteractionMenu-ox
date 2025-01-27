@@ -135,7 +135,11 @@ function Menu()
                 end
                 Unseat.Activated = function(ParentMenu, SelectedItem)
                     if IsPedInAnyVehicle(GetPlayerPed(-1), true) then
-                        Notify('~o~You need to be outside of the vehicle')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You need to be outside of the vehicle',
+                            type = 'info',
+                        })
                         return
                     end
 
@@ -157,35 +161,85 @@ function Menu()
                 BAC.Activated = function(ParentMenu, SelectedItem)
                     local player = GetClosestPlayer()
                     if player ~= false then
-                        Notify('~b~Testing ...')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Testing! .....',
+                            type = 'info',
+                        })
                         TriggerServerEvent('SEM_InteractionMenu:BACTest', player)
                     end
                 end
                 Jail.Activated = function(ParentMenu, SelectedItem)
+                    local charges = { -- Feel free to add more :)
+                        {label = 'Assault', value = 'Assault'},
+                        {label = 'Battery', value = 'Battery'},
+                        {label = 'Burglary', value = 'Burglary'},
+                        {label = 'Drug Possession', value = 'Drug Possession'},
+                        {label = 'DUI', value = 'DUI'},
+                        {label = 'Grand Theft Auto', value = 'Grand Theft Auto'},
+                        {label = 'Illegal Weapon Possession', value = 'Illegal Weapon Possession'},
+                        {label = 'Public Intoxication', value = 'Public Intoxication'},
+                        {label = 'Resisting Arrest', value = 'Resisting Arrest'},
+                        {label = 'Robbery', value = 'Robbery'},
+                        {label = 'Speeding', value = 'Speeding'},
+                        {label = 'Vandalism', value = 'Vandalism'},
+                        {label = 'Murder', value = 'Murder'},
+                        {label = 'Homoside', value = 'Homoside'},
+                        {label = 'Fleeing & Evading', value = 'Fleeing & Evading'},
+                    }
+                    
                     local input = exports.ox_lib:inputDialog('Jail Player', {
                         {type = 'number', label = 'Player ID', description = 'Enter the ID of the player to jail', required = true, min = 1},
-                        {type = 'number', label = 'Time (Seconds)', description = 'Max Time: ' .. Config.MaxJailTime .. ' | Default: 30', default = 30, min = 1, max = Config.MaxJailTime}
+                        {type = 'number', label = 'Time (Seconds)', description = 'Max Time: ' .. Config.MaxJailTime .. ' | Default: 30', default = 30, min = 1, max = Config.MaxJailTime},
+                        {type = 'multi-select', label = 'Charges', description = 'Select charges (multiple allowed)', options = charges, required = true}
                     })
                 
                     if not input then return end
                 
                     local PlayerID = input[1]
                     local JailTime = input[2]
+                    local SelectedCharges = input[3]
                 
                     if not PlayerID or PlayerID <= 0 then
-                        Notify('~r~Please enter a valid player ID')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Please enter a valid ID',
+                            type = 'info',
+                        })
                         return
                     end
                 
                     if not JailTime then
                         JailTime = 30
                     elseif JailTime > Config.MaxJailTime then
-                        Notify('~y~Exceeded Max Time\nMax Time: ' .. Config.MaxJailTime .. ' seconds')
+                        
+
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Exceeded Max Time | Max Time: ' .. Config.MaxJailTime .. ' seconds',
+                            type = 'info',
+                        })
                         JailTime = Config.MaxJailTime
                     end
                 
-                    Notify('Player Jailed for ~b~' .. JailTime .. ' seconds')
-                    TriggerServerEvent('SEM_InteractionMenu:Jail', PlayerID, JailTime)
+                    if #SelectedCharges == 0 then
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Please select at least one charge',
+                            type = 'info',
+                        })
+                        return
+                    end
+                
+                    local chargesString = table.concat(SelectedCharges, ", ")
+
+                    lib.notify({
+                        title = 'Info',
+                        description = 'Player Jailed for' .." ".. JailTime .. " " .. 'seconds | Charges: ' .. chargesString,
+                        type = 'info',
+                    })
+                    
+                    TriggerServerEvent('SEM_InteractionMenu:Jail', PlayerID, JailTime, chargesString)
                 end
                 
                 Unjail.Activated = function(ParentMenu, SelectedItem)
@@ -198,12 +252,19 @@ function Menu()
                     local PlayerID = input[1]
                 
                     if not PlayerID or PlayerID <= 0 then
-                        Notify('~r~Please enter a valid player ID')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Please enter a valid player ID!',
+                            type = 'info',
+                        })
                         return
                     end
                 
-                    TriggerServerEvent('SEM_InteractionMenu:Unjail', PlayerID)
-                    Notify('Player with ID ' .. PlayerID .. ' has been unjailed')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'Player with ID ' .. PlayerID .. ' has been unjailed',
+                        type = 'info',
+                    })
                 end
                 DelSpikes.Activated = function(ParentMenu, SelectedItem)
                     TriggerEvent('SEM_InteractionMenu:Spikes-DeleteSpikes')
@@ -220,12 +281,20 @@ function Menu()
                         CarbineEquipped = not CarbineEquipped
                         ShotgunEquipped = false
                     elseif (GetVehicleClass(GetVehiclePedIsIn(GetPlayerPed(-1))) ~= 18) then
-                        Notify('~r~You Must be in a Police Vehicle to rack/unrack your Carbine Rifle')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You must be in a police vehicle to rack/unrank your rifle',
+                            type = 'info',
+                        })
                         return
                     end
                 
                     if CarbineEquipped then
-                        Notify('~g~Carbine Rifle Equipped')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Carbine Rifle Equipped',
+                            type = 'info',
+                        })
                         GiveWeapon('weapon_carbinerifle')
                         AddWeaponComponent('weapon_carbinerifle', 'component_at_ar_flsh')
                         AddWeaponComponent('weapon_carbinerifle', 'component_at_ar_afgrip')
@@ -239,12 +308,20 @@ function Menu()
                         ShotgunEquipped = not ShotgunEquipped
                         CarbineEquipped = false
                     elseif (GetVehicleClass(GetVehiclePedIsIn(GetPlayerPed(-1))) ~= 18) then
-                        Notify('~r~You Must be in a Police Vehicle to rack/unrack your Shotgun')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You must be in a police vehicle to rank/unrank your shotgun',
+                            type = 'info',
+                        })
                         return
                     end
                     
                     if ShotgunEquipped then
-                        Notify('~g~Shotgun Equipped')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Shotgun Equipped',
+                            type = 'info',
+                        })
                         GiveWeapon('weapon_pumpshotgun')
                         AddWeaponComponent('weapon_pumpshotgun', 'component_at_ar_flsh')
                     else
@@ -373,7 +450,11 @@ function Menu()
                             for _, Uniform in pairs(Config.LEOUniforms) do
                                 if Uniform.name == item:IndexToItem(index) then
                                     LoadPed(Uniform.spawncode)
-                                    Notify('~b~Uniform Spawned: ~g~' .. Uniform.name)
+                                    lib.notify({
+                                        title = 'Info',
+                                        description = 'Uniform Spawned: ' .. Uniform.name,
+                                        type = 'info',
+                                    })
                                 end
                             end
                         end
@@ -395,7 +476,11 @@ function Menu()
                                         end
                                     end
 
-                                    Notify('~b~Loadout Spawned: ~g~' .. Name)
+                                    lib.notify({
+                                        title = 'Info',
+                                        description = 'Loadout Spawned ' .. Name,
+                                        type = 'info',
+                                    })
                                 end
                             end
                         end
@@ -480,9 +565,17 @@ function Menu()
                             Zone = AddSpeedZoneForCoord(GetEntityCoords(PlayerPedId()), TMSize, TMSpeed, false)
                             Area = AddBlipForRadius(GetEntityCoords(PlayerPedId()), TMSize)
                             SetBlipAlpha(Area, 100)
-                            Notify('~g~Speed Zone Created')
+                            lib.notify({
+                                title = 'Info',
+                                description = 'Speed Zone Created',
+                                type = 'info',
+                            })
                         else
-                            Notify('~y~You already have a Speed Zone created')
+                            lib.notify({
+                                title = 'Info',
+                                description = 'You already have a speed zone created',
+                                type = 'info',
+                            })
                         end
                     end
                     TMDelete.Activated = function(ParentMenu, SelectedItem)
@@ -490,9 +583,17 @@ function Menu()
                             RemoveSpeedZone(Zone)
                             RemoveBlip(Area)
                             Zone = nil
-                            Notify('~r~Speed Zone Deleted')
+                            lib.notify({
+                                title = 'Info',
+                                description = 'Speed Zone deleted',
+                                type = 'info',
+                            })
                         else
-                            Notify('~y~You don\'t have a Speed Zone')
+                            lib.notify({
+                                title = 'Info',
+                                description = 'You do not have a Speed Zone set',
+                                type = 'info',
+                            })
                         end
                     end
             end
@@ -526,7 +627,11 @@ function Menu()
                 end
                 Unseat.Activated = function(ParentMenu, SelectedItem)
                     if IsPedInAnyVehicle(GetPlayerPed(-1), true) then
-                        Notify('~o~You need to be outside of the vehicle')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You need to be outside of the vehicle',
+                            type = 'info',
+                        })
                         return
                     end
 
@@ -553,14 +658,26 @@ function Menu()
 
                                     if PlayerID and HospitalTime then
                                         if HospitalTime > Config.MaxHospitalTime then
-                                            Notify('~y~Exceeded Max Time\nMax Time: ' .. Config.MaxHospitalTime .. ' seconds')
+                                            lib.notify({
+                                                title = 'Info',
+                                                description = 'Exceeded Max Time | Max Time: ' .. Config.MaxHospitalTime .. ' seconds',
+                                                type = 'info',
+                                            })
                                             HospitalTime = Config.MaxHospitalTime
                                         end
 
-                                        Notify('Player Hospitalized for ~b~' .. HospitalTime .. ' seconds')
+                                        lib.notify({
+                                            title = 'Info',
+                                            description = 'Player Hospitalized for ' .. HospitalTime .. ' seconds',
+                                            type = 'info',
+                                        })
                                         TriggerServerEvent('SEM_InteractionMenu:Hospitalize', PlayerID, HospitalTime, HospitalInfo)
                                     else
-                                        Notify('~r~Invalid input. Please try again.')
+                                        lib.notify({
+                                            title = 'Error',
+                                            description = 'Invalid Input. please try again!',
+                                            type = 'error',
+                                        })
                                     end
                                 end
                             end
@@ -578,7 +695,11 @@ function Menu()
                                 local PlayerID = input[1]
                                 TriggerServerEvent('SEM_InteractionMenu:Unhospitalize', PlayerID)
                             else
-                                Notify('~r~Invalid input. Please try again.')
+                                lib.notify({
+                                    title = 'Info',
+                                    description = 'Invalid Input. Please try again!',
+                                    type = 'info',
+                                })
                             end
                         end
                     end
@@ -674,7 +795,11 @@ function Menu()
                             for _, Uniform in pairs(Config.FireUniforms) do
                                 if Uniform.name == item:IndexToItem(index) then
                                     LoadPed(Uniform.spawncode)
-                                    Notify('~b~Uniform Spawned: ~g~' .. Uniform.name)
+                                    lib.notify({
+                                        title = 'Info',
+                                        description = 'Uniform Spawned: ' .. Uniform.Name,
+                                        type = 'info',
+                                    })
                                 end
                             end
                         end
@@ -775,12 +900,24 @@ function Menu()
                         local items = input[1]
                         if items ~= '' then
                             TriggerServerEvent('SEM_InteractionMenu:InventorySet', items)
-                            Notify('~g~Inventory Set!')
+                            lib.notify({
+                                title = 'Info',
+                                description = 'Inventory Set!',
+                                type = 'info',
+                            })
                         else
-                            Notify('~r~No Items Provided!')
+                            lib.notify({
+                                title = 'Info',
+                                description = 'No Items Provided',
+                                type = 'info',
+                            })
                         end
                     else
-                        Notify('~y~Inventory setting cancelled')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'Inventory Setting Canceled',
+                            type = 'info',
+                        })
                     end
                 end
                 BAC.Activated = function(ParentMenu, SelectedItem)
@@ -793,11 +930,20 @@ function Menu()
                         if bacLevel and bacLevel >= 0 and bacLevel <= 0.40 then
                             TriggerServerEvent('SEM_InteractionMenu:SetBAC', bacLevel)
                             Notify(string.format('~b~Your BAC level has been set to: ~g~%.2f', bacLevel))
+                            
                         else
-                            Notify('~r~Invalid BAC level entered. Please enter a number between 0.00 and 0.40.')
+                            lib.notify({
+                                title = 'Error',
+                                description = 'Invalid BAC level entered. Please enter a number between 0.00 and 0.40.',
+                                type = 'error',
+                            })
                         end
                     else
-                        Notify('~y~BAC setting cancelled')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'BAC Setting Canceled',
+                            type = 'info',
+                        })
                     end
                 end
                 DropWeapon.Activated = function(ParentMenu, SelectedItem)
@@ -822,10 +968,18 @@ function Menu()
                                 if Message ~= '' then
                                     TriggerServerEvent('SEM_InteractionMenu:Ads', Message, Ad.name, Ad.loc, Ad.file)
                                 else
-                                    Notify('~r~No Advert Message Provided!')
+                                    lib.notify({
+                                        title = 'Info',
+                                        description = 'No Advert Message Provided',
+                                        type = 'info',
+                                    })
                                 end
                             else
-                                Notify('~y~Advert cancelled')
+                                lib.notify({
+                                    title = 'Info',
+                                    description = 'Advert Canceled',
+                                    type = 'info',
+                                })
                             end
                         end
                     end
@@ -879,9 +1033,17 @@ function Menu()
                 local Vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
                 if Vehicle ~= nil and Vehicle ~= 0 and GetPedInVehicleSeat(Vehicle, 0) then
                     SetVehicleEngineOn(Vehicle, (not GetIsVehicleEngineRunning(Vehicle)), false, true)
-                    Notify('~g~Engine Toggled!')
+                    lib.notify({
+                        title = 'Success',
+                        description = 'Engine Toggled',
+                        type = 'success',
+                    })
                 else
-                    Notify('~r~You\'re not in a Vehicle!')
+                    lib.notify({
+                        title = 'Error',
+                        description = 'You are not in a vehicle',
+                        type = 'error',
+                    })
                 end
             end
             ILights.Activated = function(ParentMenu, SelectedItem)
@@ -894,7 +1056,11 @@ function Menu()
                         SetVehicleInteriorlight(Vehicle, true)
                     end
                 else
-                    Notify('~r~You\'re not in a Vehicle!')
+                    lib.notify({
+                        title = 'Error',
+                        description = 'You are not in a vehicle',
+                        type = 'error',
+                    })
                 end
             end
             VehicleMenu.OnSliderChange = function(sender, item, index)
@@ -1037,9 +1203,17 @@ function Menu()
                 if Vehicle ~= nil and Vehicle ~= 0 then
                     SetVehicleEngineHealth(Vehicle, 100)
                     SetVehicleFixed(Vehicle)
-                    Notify('~g~Vehicle Repaired!')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'Vehcile Repaired',
+                        type = 'info',
+                    })
                 else
-                    Notify('~r~You\'re not in a Vehicle!')
+                    lib.notify({
+                        title = 'Error',
+                        description = 'You are not in a vehicle',
+                        type = 'error',
+                    })
                 end
 
             end
@@ -1047,9 +1221,17 @@ function Menu()
                 local Vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
                 if Vehicle ~= nil and Vehicle ~= 0 then
                     SetVehicleDirtLevel(Vehicle, 0)
-                    Notify('~g~Vehicle Cleaned!')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'Vehicle Cleaned',
+                        type = 'info',
+                    })
                 else
-                    Notify('~r~You\'re not in a Vehicle!')
+                    lib.notify({
+                        title = 'Error',
+                        description = 'You are not in a vehicle',
+                        type = 'error',
+                    })
                 end
             end
             DelVeh.Activated = function(ParentMenu, SelectedItem)
@@ -1061,15 +1243,31 @@ function Menu()
                         DeleteVehicle(Vehicle)
 
                         if (DoesEntityExist(Vehicle)) then 
-                            Notify('~o~Unable to delete vehicle, try again.')
+                            lib.notify({
+                                title = 'Error',
+                                description = 'Unable to delete vehicle please try again!',
+                                type = 'error',
+                            })
                         else 
-                            Notify('~r~Vehicle Deleted!')
+                            lib.notify({
+                                title = 'Success',
+                                description = 'Vehicle Deleted',
+                                type = 'success',
+                            })
                         end 
                     else 
-                        Notify('~r~You must be in the driver\'s seat!')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You must be in the drivers seat!',
+                            type = 'info',
+                        })
                     end 
                 else
-                    Notify('~r~You\'re not in a Vehicle!')
+                    lib.notify({
+                        title = 'Error',
+                        description = 'You are not in a vehicle',
+                        type = 'error',
+                    })
                 end
             end
     end
