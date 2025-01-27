@@ -45,5 +45,3 @@ exports {
      '@ox_lib/init.lua',
     'IsOndutyFire',
 }
-
-
