@@ -18,5 +18,5 @@ This resource is built to give SEM Interaction a better feel and look. I have ad
 This is a drag and drop resource. Open your server.cfg file, ensure/start SEM_InteractionMenu, then drag and drop the resource and it should set itself up. Please make sure ox_lib is installed and started before this resource on your server. If you fail to do this step the menu **WILL** break.
 
 ![image](https://github.com/user-attachments/assets/41868645-855b-4ebc-88b2-2df8c6cf48a5)
-![image](https://github.com/user-attachments/assets/48948eec-e20d-4a4d-be64-f26bbdc8f08c)
-
+![image](https://github.com/user-attachments/assets/e8b31d4f-49b3-4530-9f0d-bfbfdb4814ed)
+![image](https://github.com/user-attachments/assets/c5bb7683-8f5e-478c-b91a-b3ad470f69c2)
