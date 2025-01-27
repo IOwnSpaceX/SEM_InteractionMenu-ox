@@ -12,155 +12,59 @@
 ──────────────────────────────────────────────────────────────
 ]]
 
+
+
 --Cuffing Event
 local isCuffed = false
 RegisterNetEvent('SEM_InteractionMenu:Cuff')
 AddEventHandler('SEM_InteractionMenu:Cuff', function()
-    local Ped = PlayerPedId()
-    if (DoesEntityExist(Ped)) then
-        Citizen.CreateThread(function()
+	local Ped = PlayerPedId()
+	if (DoesEntityExist(Ped)) then
+		Citizen.CreateThread(function()
+            RequestAnimDict('mp_arresting')
+            while not HasAnimDictLoaded('mp_arresting') do
+                Citizen.Wait(0)
+            end
+
             if isCuffed then
-                -- Uncuffing
-                local animation = { dict = "mp_arresting", name = "b_uncuff" }
-                RequestAnimDict(animation.dict)
-                while not HasAnimDictLoaded(animation.dict) do
-                    Citizen.Wait(0)
-                end
-                TaskPlayAnim(Ped, animation.dict, animation.name, 8.0, -8, -1, 0, 0, 0, 0, 0)
-                
-                -- Wait for the animation to finish
-                Citizen.Wait(3000)
-                
                 isCuffed = false
+                Citizen.Wait(500)
                 SetEnableHandcuffs(Ped, false)
                 ClearPedTasksImmediately(Ped)
             else
-                -- Cuffing
                 isCuffed = true
-                SetEnableHandcuffs(Ped, true)
-                
-                -- Cuffing animation
-                local animation = { dict = "mp_arrest_paired", name = "crook_p2_back_right" }
-                RequestAnimDict(animation.dict)
-                while not HasAnimDictLoaded(animation.dict) do
-                    Citizen.Wait(0)
-                end
-                TaskPlayAnim(Ped, animation.dict, animation.name, 8.0, -8, 3750, 2, 0, 0, 0, 0)
-                
-                -- Ensure the cuffed animation persists
-                Citizen.SetTimeout(3800, function()
-                    if isCuffed then
-                        local cuffedAnim = { dict = "mp_arresting", name = "idle" }
-                        RequestAnimDict(cuffedAnim.dict)
-                        while not HasAnimDictLoaded(cuffedAnim.dict) do
-                            Citizen.Wait(0)
-                        end
-                        TaskPlayAnim(Ped, cuffedAnim.dict, cuffedAnim.name, 8.0, -8, -1, 49, 0, 0, 0, 0)
-                    end
-                end)
-                
-                -- Attempt uncuffing
-                Citizen.Wait(4000) -- Wait 4 seconds before starting
-                TriggerEvent('SEM_InteractionMenu:AttemptUncuff')
+				SetEnableHandcuffs(Ped, true)
+				TaskPlayAnim(Ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
             end
-        end)
-    end
+		end)
+	end
 end)
 
--- Uncuff attempt event
-RegisterNetEvent('SEM_InteractionMenu:AttemptUncuff')
-AddEventHandler('SEM_InteractionMenu:AttemptUncuff', function()
-    if isCuffed then
-        if exports['ox_lib'] and exports['ox_lib'].skillCheck then
-            local success = exports['ox_lib']:skillCheck({'easy', 'easy', {areaSize = 60, speedMultiplier = 2}, 'easy'}, {'w', 'a', 's', 'd'})
-            if success then
-                isCuffed = false
-                local Ped = PlayerPedId()
-                SetEnableHandcuffs(Ped, false)
-                ClearPedTasksImmediately(Ped)
-                Notify('~g~You successfully uncuffed yourself!')
-            else
-                Notify('~r~Failed to uncuff yourself!')
-            end
-        else
-            Notify('~r~Unable to attempt uncuffing. Required resource not available.')
-        end
-    end
-end)
-
--- Arresting Animation
-RegisterNetEvent('SEM_InteractionMenu:OfficerCuffAnim')
-AddEventHandler('SEM_InteractionMenu:OfficerCuffAnim', function()
-    local playerPed = PlayerPedId()
-    local animation = {dict = 'mp_arrest_paired', name = 'cop_p2_back_right'}
-    
-    RequestAnimDict(animation.dict)
-    while not HasAnimDictLoaded(animation.dict) do
-        Wait(0)
-    end
-    TaskPlayAnim(playerPed, animation.dict, animation.name, 8.0, -8, 3750, 48, 0, 0, 0, 0)
-end)
-
---Cuff Animation & Restrictions
+--Cuff Animation & Restructions
 Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(1)
-
-        local ped = PlayerPedId()
+	while true do
+		Citizen.Wait(1)
 
         if isCuffed then
-            if IsEntityDead(ped) then
-                isCuffed = false
-                SetEnableHandcuffs(ped, false)
-                ClearPedTasksImmediately(ped)
-            else
-                if not IsEntityPlayingAnim(ped, 'mp_arresting', 'idle', 3) then
-                    RequestAnimDict("mp_arresting")
-                    while not HasAnimDictLoaded("mp_arresting") do
-                        Wait(100)
-                    end
-                    TaskPlayAnim(ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
-                end
-
-                SetEnableHandcuffs(ped, true)
-                SetPedCanPlayGestureAnims(ped, false)
-                FreezeEntityPosition(ped, false)
-
-                SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true)
-                
-                if not Config.VehEnterCuffed then
-                    DisableControlAction(1, 23, true) --F | Enter Vehicle
-                    DisableControlAction(1, 75, true) --F | Exit Vehicle
-                end
-                DisableControlAction(1, 140, true) --R
-                DisableControlAction(1, 141, true) --Q
-                DisableControlAction(1, 142, true) --LMB
-                SetPedPathCanUseLadders(ped, false)
-                
-                DisableControlAction(0, 21, true) -- disable sprint
-                DisableControlAction(0, 24, true) -- disable attack
-                DisableControlAction(0, 25, true) -- disable aim
-                DisableControlAction(0, 47, true) -- disable weapon
-                DisableControlAction(0, 58, true) -- disable weapon
-                DisableControlAction(0, 263, true) -- disable melee
-                DisableControlAction(0, 264, true) -- disable melee
-                DisableControlAction(0, 257, true) -- disable melee
-                DisableControlAction(0, 140, true) -- disable melee
-                DisableControlAction(0, 141, true) -- disable melee
-                DisableControlAction(0, 142, true) -- disable melee
-                DisableControlAction(0, 143, true) -- disable melee
-                
-                if IsPedInAnyVehicle(ped, false) then
-                    DisableControlAction(0, 59, true)
-                end
+            if not IsEntityPlayingAnim(GetPlayerPed(PlayerId()), 'mp_arresting', 'idle', 3) then
+                TaskPlayAnim(GetPlayerPed(PlayerId()), 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
             end
-        else
-            SetEnableHandcuffs(ped, false)
-            SetPedCanPlayGestureAnims(ped, true)
-            SetPedMoveRateOverride(ped, 1.0)
-            SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
-        end
-    end
+
+            SetCurrentPedWeapon(PlayerPedId(), 'weapon_unarmed', true)
+            
+            if not Config.VehEnterCuffed then
+                DisableControlAction(1, 23, true) --F | Enter Vehicle
+                DisableControlAction(1, 75, true) --F | Exit Vehicle
+            end
+			DisableControlAction(1, 140, true) --R
+			DisableControlAction(1, 141, true) --Q
+			DisableControlAction(1, 142, true) --LMB
+			SetPedPathCanUseLadders(GetPlayerPed(PlayerId()), false)
+			if IsPedInAnyVehicle(GetPlayerPed(PlayerId()), false) then
+				DisableControlAction(0, 59, true) --Vehicle Driving
+			end
+		end
+	end
 end)
 
 
@@ -186,18 +90,10 @@ Citizen.CreateThread(function()
         if Drag then
             local Ped = GetPlayerPed(GetPlayerFromServerId(OfficerDrag))
             local Ped2 = PlayerPedId()
-            
-            if not isCuffed then
-                Drag = false
-                OfficerDrag = -1
-                DetachEntity(Ped2, true, false)
-                Notify('~g~You have been released from being dragged.')
-            else
-                AttachEntityToEntity(Ped2, Ped, 4103, 0.35, 0.38, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
-                DisableControlAction(1, 140, true) --R
-                DisableControlAction(1, 141, true) --Q
-                DisableControlAction(1, 142, true) --LMB
-            end
+            AttachEntityToEntity(Ped2, Ped, 4103, 0.35, 0.38, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
+            DisableControlAction(1, 140, true) --R
+			DisableControlAction(1, 141, true) --Q
+			DisableControlAction(1, 142, true) --LMB
         end
     end
 end)
@@ -237,7 +133,12 @@ local SpawnedSpikes = {}
 RegisterNetEvent('SEM_InteractionMenu:Spikes-SpawnSpikes')
 AddEventHandler('SEM_InteractionMenu:Spikes-SpawnSpikes', function(Length)
     if IsPedInAnyVehicle(PlayerPedId(), false) then
-        Notify('~r~You can\'t set spikes while in a vehicle!')
+        lib.notify({
+            title = 'Info',
+            description = 'You cannot set spikes while inside of a vehicle!',
+            type = 'info',
+        })
+        
         return
     end
 
@@ -262,7 +163,11 @@ AddEventHandler('SEM_InteractionMenu:Spikes-DeleteSpikes', function()
         local Spike = NetworkGetEntityFromNetworkId(SpawnedSpikes[a])
         DeleteEntity(Spike)
     end
-    Notify('~r~Spikes Strips Removed!')
+    lib.notify({
+        title = 'Info',
+        description = 'Spikes Removed',
+        type = 'info',
+    })
     SpawnedSpikes = {}
 end)
 
@@ -442,7 +347,12 @@ Citizen.CreateThread(function()
                 SetCurrentPedWeapon(Ped, 'weapon_carbinerifle', true)
             else
                 if tostring(CurrentWeapon) == '-2084633992' then
-                    Notify('~o~You need to unrack your rifle before you can use it')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'You need to unrank your rifle before you use it!',
+                        type = 'info',
+                    })
+                    
                     SetCurrentPedWeapon(Ped, 'weapon_unarmed', true)
                 end
             end
@@ -451,7 +361,11 @@ Citizen.CreateThread(function()
                 SetCurrentPedWeapon(Ped, 'weapon_pumpshotgun', true)
             else
                 if tostring(CurrentWeapon) == '487013001' then
-                    Notify('~o~You need to unrack your shotgun before you can use it')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'You need to unrank your shotgun before you use it!',
+                        type = 'info',
+                    })
                     SetCurrentPedWeapon(Ped, 'weapon_unarmed', true)
                 end
             end
@@ -478,7 +392,11 @@ AddEventHandler('SEM_InteractionMenu:InventoryResult', function(Inventory)
         Inventory = 'Empty'
     end
 
-    Notify('~b~Inventory Items: ~g~' .. Inventory)
+    lib.notify({
+        title = 'Info',
+        description = 'Inventory Items: ' .. Inventory,
+        type = 'info',
+    })
 end)
 
 
@@ -493,9 +411,17 @@ AddEventHandler('SEM_InteractionMenu:BACResult', function(BACLevel)
     end
 
     if tonumber(BACLevel) < 0.08 then
-        Notify('~b~BAC Level: ~g~' .. tostring(BACLevel))
+        lib.notify({
+            title = 'Info',
+            description = 'BAC Level: ',
+            type = 'info',
+        })
     else
-        Notify('~b~BAC Level: ~r~' .. tostring(BACLevel))
+        lib.notify({
+            title = 'Info',
+            description = 'BAC Level: ',
+            type = 'info',
+        })
     end
 end)
 
@@ -665,7 +591,11 @@ Citizen.CreateThread(function()
 
         if EmotePlaying then
             if Config.EmoteHelp then
-                NotifyHelp('You are playing an Emote, ~b~Move to Cancel')
+                lib.notify({
+                    title = 'Info',
+                    description = 'You are playing an emote move to cancel',
+                    type = 'info',
+                })
             end
 
             --  Spacebar                   W                          S                          A                          D
@@ -734,41 +664,85 @@ RegisterCommand('onduty', function(source, args, rawCommand)
                 if Department == 'leo' then
                     LEOOnduty = not LEOOnduty
                     if LEOOnduty then
-                        Notify('~g~You are onduty as an LEO')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You are on duty as LEO',
+                            type = 'info',
+                        })
                     else
-                        Notify('~o~You are no longer onduty as an LEO')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You are no longer on duty as LEO',
+                            type = 'info',
+                        })
                     end
                 elseif Department == 'fire' then
                     FireOnduty = not FireOnduty
                     if FireOnduty == true then
-                        Notify('~g~You are onduty as an Firefighter')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You are on duty as a Firefighter',
+                            type = 'info',
+                        })
                     else
-                        Notify('~o~You are no longer onduty as an Firefighter')
+                        lib.notify({
+                            title = 'Info',
+                            description = 'You are no longer on duty as a Firefighter',
+                            type = 'info',
+                        })
                     end
                 else
-                    Notify('~r~Invalid Department!')
+                    lib.notify({
+                        title = 'Error',
+                        description = 'Invalid Department',
+                        type = 'error',
+                    })
                 end
             else
-                Notify('~r~Incorrect Password')
+                lib.notify({
+                    title = 'Error',
+                    description = 'Incorrect Password',
+                    type = 'error',
+                })
             end
         else
             local Department = args[1]:lower()
             if Department == 'leo' then
                 LEOOnduty = not LEOOnduty
                 if LEOOnduty then
-                    Notify('~g~You are onduty as an LEO')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'You are on duty as LEO',
+                        type = 'info',
+                    })
                 else
-                    Notify('~o~You are no longer onduty as an LEO')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'You are no longer on duty as LEO!',
+                        type = 'info',
+                    })
                 end
             elseif Department == 'fire' then
                 FireOnduty = not FireOnduty
                 if FireOnduty == true then
-                    Notify('~g~You are onduty as an Firefighter')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'You are onduty as a Firefighter',
+                        type = 'info',
+                    })
                 else
-                    Notify('~o~You are no longer onduty as an Firefighter')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'You are no longer on duty as a Fighterfighter',
+                        type = 'info',
+                    })
                 end
             else
-                Notify('~r~Invalid Department!')
+                lib.notify({
+                    title = 'Info',
+                    description = 'Invalid Department',
+                    type = 'info',
+                })
             end
         end
     end
@@ -789,7 +763,11 @@ RegisterCommand('cuff', function(source, args, rawCommand)
                 if GetDistance(source) < Config.CommandDistance then
                     TriggerServerEvent('SEM_InteractionMenu:CuffNear', ID)
                 else
-                    Notify('~r~That player is too far away')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'That player is too far away',
+                        type = 'info',
+                    })
                 end
             else
                 TriggerServerEvent('SEM_InteractionMenu:CuffNear', ID)
@@ -798,7 +776,11 @@ RegisterCommand('cuff', function(source, args, rawCommand)
             TriggerServerEvent('SEM_InteractionMenu:CuffNear', GetClosestPlayer())
         end
     else
-        Notify('~r~Insufficient Permissions')
+        lib.notify({
+            title = 'Error',
+            description = 'Invalid Permissions!',
+            type = 'error',
+        })
     end
 end)
 
@@ -810,7 +792,11 @@ RegisterCommand('drag', function(source, args, rawCommand)
                 if GetDistance(source) < Config.CommandDistance then
                     TriggerServerEvent('SEM_InteractionMenu:DragNear', ID)
                 else
-                    Notify('~r~That player is too far away')
+                    lib.notify({
+                        title = 'Info',
+                        description = 'That player is too far away!',
+                        type = 'info',
+                    })
                 end
             else
                 TriggerServerEvent('SEM_InteractionMenu:DragNear', ID)
@@ -819,7 +805,11 @@ RegisterCommand('drag', function(source, args, rawCommand)
             TriggerServerEvent('SEM_InteractionMenu:DragNear', GetClosestPlayer())
         end
     else
-        Notify('~r~Insufficient Permissions')
+        lib.notify({
+            title = 'Error',
+            description = 'Invalid Permissions',
+            type = 'error',
+        })
     end
 end)
 
@@ -828,7 +818,11 @@ RegisterCommand('radar', function(source, args, rawCommand)
         if LEORestrict() or FireRestrict() then
             ToggleRadar()
         else
-            Notify('~r~Insufficient Permissions')
+            lib.notify({
+                title = 'Error',
+                description = 'Invalid Permissions',
+                type = 'error',
+            })
         end
     end
 end)
@@ -870,7 +864,11 @@ RegisterCommand('loadout', function(source, args, rawCommand)
             Notify('~g~Loadout Spawned')
         end
     else
-        Notify('~r~You aren\'t an LEO')
+        lib.notify({
+            title = 'Info',
+            description = 'You arnt a LEO!',
+            type = 'info',
+        })
     end
 end)
 
@@ -909,20 +907,32 @@ end)
 RegisterCommand('dropweapon', function(source, args, rawCommand)
     local CurrentWeapon = GetSelectedPedWeapon(PlayerPedId())
     SetPedDropsInventoryWeapon(PlayerPedId(), CurrentWeapon, -2.0, 0.0, 0.5, 30)
-    Notify('~r~Weapon Dropped!')
+    lib.notify({
+        title = 'Info',
+        description = 'Weapon Dropped',
+        type = 'info',
+    })
 end)
 
 RegisterCommand('clear', function(source, args, rawCommand)
     SetEntityHealth(PlayerPedId(), 200)
     RemoveAllPedWeapons(PlayerPedId(), true)
-    Notify('~r~All Weapons Cleared!')
+    lib.notify({
+        title = 'Info',
+        description = 'All Weapons Cleared',
+        type = 'info',
+    })
 end)
 
 RegisterCommand('eng', function(source, args, rawCommand)
     local Veh = GetVehiclePedIsIn(PlayerPedId(), false)
     if Veh ~= nil and Veh ~= 0 and GetPedInVehicleSeat(Veh, 0) then
         SetVehicleEngineOn(Veh, (not GetIsVehicleEngineRunning(Veh)), false, true)
-        Notify('~g~Engine Toggled!')
+        lib.notify({
+            title = 'Info',
+            description = 'Engine Toggled',
+            type = 'info',
+        })
     end
 end)
 
@@ -937,7 +947,11 @@ RegisterCommand('hood', function(source, args, rawCommand)
         end
     end
 
-    Notify('~g~Hood Toggled!')
+    lib.notify({
+        title = 'Info',
+        description = 'Hood Toggled',
+        type = 'info',
+    })
 end)
 
 RegisterCommand('trunk', function(source, args, rawCommand)
@@ -951,7 +965,11 @@ RegisterCommand('trunk', function(source, args, rawCommand)
         end
     end
 
-    Notify('~g~Trunk Toggled!')
+    lib.notify({
+        title = 'Info',
+        description = 'Trunk Toggled',
+        type = 'info',
+    })
 end)
 
 RegisterCommand('emotes', function(source, args, rawCommand)
