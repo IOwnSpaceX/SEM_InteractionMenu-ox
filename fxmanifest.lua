@@ -12,7 +12,8 @@
 ──────────────────────────────────────────────────────────────────
 ]]
 
-
+lua54 'yes'
+dependency 'ox_lib'
 
 fx_version 'cerulean'
 games {'gta5'}
@@ -26,6 +27,7 @@ version 'v1.7.1' --This is required for the version checker, DO NOT change or re
 client_scripts {
     'dependencies/NativeUI.lua',
     'client.lua',
+    '@ox_lib/init.lua',
     'config.lua',
     'functions.lua',
     'menu.lua',
@@ -33,15 +35,15 @@ client_scripts {
 
 server_scripts {
     'config.lua',
+    '@ox_lib/init.lua',
     'server.lua',
     'functions.lua',
 }
 
 exports {
     'IsOndutyLEO',
+     '@ox_lib/init.lua',
     'IsOndutyFire',
 }
 
-dependencies {
-    'ox_lib'
-}
+
