@@ -68,7 +68,10 @@ function GetClosestPlayer()
         end
     end
 
-    Notify('~r~No Player Nearby!')
+    lib.notify({
+        title = 'No Player Nearby!',
+        type = 'error',
+    })
     return false
 end
 

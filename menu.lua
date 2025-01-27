@@ -183,9 +183,7 @@ function Menu()
                         {label = 'Robbery', value = 'Robbery'},
                         {label = 'Speeding', value = 'Speeding'},
                         {label = 'Vandalism', value = 'Vandalism'},
-                        {label = 'Murder', value = 'Murder'},
-                        {label = 'Homoside', value = 'Homoside'},
-                        {label = 'Fleeing & Evading', value = 'Fleeing & Evading'},
+                        {label = 'Fleeing & Evading', value = 'Fleeing & Evading'}
                     }
                     
                     local input = exports.ox_lib:inputDialog('Jail Player', {
@@ -202,9 +200,9 @@ function Menu()
                 
                     if not PlayerID or PlayerID <= 0 then
                         lib.notify({
-                            title = 'Info',
+                            title = 'Error',
                             description = 'Please enter a valid ID',
-                            type = 'info',
+                            type = 'error'
                         })
                         return
                     end
@@ -212,33 +210,25 @@ function Menu()
                     if not JailTime then
                         JailTime = 30
                     elseif JailTime > Config.MaxJailTime then
-                        
-
                         lib.notify({
-                            title = 'Info',
+                            title = 'Warning',
                             description = 'Exceeded Max Time | Max Time: ' .. Config.MaxJailTime .. ' seconds',
-                            type = 'info',
+                            type = 'warning'
                         })
                         JailTime = Config.MaxJailTime
                     end
                 
                     if #SelectedCharges == 0 then
                         lib.notify({
-                            title = 'Info',
+                            title = 'Error',
                             description = 'Please select at least one charge',
-                            type = 'info',
+                            type = 'error'
                         })
                         return
                     end
                 
                     local chargesString = table.concat(SelectedCharges, ", ")
-
-                    lib.notify({
-                        title = 'Info',
-                        description = 'Player Jailed for' .." ".. JailTime .. " " .. 'seconds | Charges: ' .. chargesString,
-                        type = 'info',
-                    })
-                    
+                
                     TriggerServerEvent('SEM_InteractionMenu:Jail', PlayerID, JailTime, chargesString)
                 end
                 
@@ -901,9 +891,8 @@ function Menu()
                         if items ~= '' then
                             TriggerServerEvent('SEM_InteractionMenu:InventorySet', items)
                             lib.notify({
-                                title = 'Info',
-                                description = 'Inventory Set!',
-                                type = 'info',
+                                title = 'Inventory Set!',
+                                type = 'success',
                             })
                         else
                             lib.notify({
@@ -929,8 +918,11 @@ function Menu()
                         local bacLevel = tonumber(input[1])
                         if bacLevel and bacLevel >= 0 and bacLevel <= 0.40 then
                             TriggerServerEvent('SEM_InteractionMenu:SetBAC', bacLevel)
-                            Notify(string.format('~b~Your BAC level has been set to: ~g~%.2f', bacLevel))
-                            
+                            lib.notify({
+                                title = 'BAC Level Set',
+                                description = string.format('Your BAC level has been set to: %.2f', bacLevel),
+                                type = 'success'
+                            })
                         else
                             lib.notify({
                                 title = 'Error',
@@ -950,7 +942,10 @@ function Menu()
                     local CurrentWeapon = GetSelectedPedWeapon(PlayerPedId())
                     SetCurrentPedWeapon(PlayerPedId(), 'weapon_unarmed', true)
                     SetPedDropsInventoryWeapon(GetPlayerPed(-1), CurrentWeapon, -2.0, 0.0, 0.5, 30)
-                    Notify('~r~Weapon Dropped!')
+                    lib.notify({
+                        title = 'Weapon Dropped!',
+                        type = 'success',
+                    })
                 end
                 if Config.ShowCivAdverts then
                     local CivAdverts = _MenuPool:AddSubMenu(CivMenu, 'Adverts', '', true)

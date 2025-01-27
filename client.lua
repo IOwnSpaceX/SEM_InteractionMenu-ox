@@ -288,26 +288,26 @@ AddEventHandler('SEM_InteractionMenu:JailPlayer', function(JailTime)
                 end
                 
                 if JailTime % 30 == 0 and JailTime ~= 0 then
-                    TriggerEvent('chat:addMessage', {
-                        multiline = true,
-                        color = {86, 96, 252},
-                        args = {'Judge', JailTime .. ' months until release.'},
+                    lib.notify({
+                        title = 'Judge',
+                        description = JailTime .. ' months until release.',
+                        type = 'info'
                     })
-				end
+                end
 
                 Citizen.Wait(1000)
 
                 local Location = GetEntityCoords(Ped, true)
-				local Distance = Vdist(Config.JailLocation.Jail.x, Config.JailLocation.Jail.y, Config.JailLocation.Jail.z, Location['x'], Location['y'], Location['z'])
-				if Distance > 100 then
+                local Distance = Vdist(Config.JailLocation.Jail.x, Config.JailLocation.Jail.y, Config.JailLocation.Jail.z, Location['x'], Location['y'], Location['z'])
+                if Distance > 100 then
                     SetEntityCoords(Ped, Config.JailLocation.Jail.x, Config.JailLocation.Jail.y, Config.JailLocation.Jail.z)
                     SetEntityHeading(Ped, Config.JailLocation.Jail.h)
-					TriggerEvent('chat:addMessage', {
-                        multiline = true,
-                        color = {86, 96, 252},
-                        args = {'Judge', 'Don\'t try escape, its impossible'},
+                    lib.notify({
+                        title = 'Judge',
+                        description = 'Don\'t try escape, its impossible',
+                        type = 'error'
                     })
-				end
+                end
 
                 JailTime = JailTime - 1
             end
